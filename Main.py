@@ -53,9 +53,25 @@ help_pen = None
 settings_pen = None
 buttons = []
 
+def load_high_score():
+    global high_score
+    if os.path.exists("high_score.txt"):
+        with open("high_score.txt", "r") as file:
+            high_score = int(file.read())
+    else:
+        high_score = 0
+
+def save_high_score():
+    with open("high_score.txt", "w") as file:
+        file.write(str(high_score))
+
+# Load the high score
+load_high_score()
+
 # UI Setup
 def setup_ui():
-    global score_pen, lives_pen
+    global score_pen, lives_pen, high_score_pen
+    # Score display
     score_pen = turtle.Turtle()
     score_pen.speed(0)
     score_pen.color("white")
@@ -63,6 +79,7 @@ def setup_ui():
     score_pen.setposition(-380, 260)
     score_pen.hideturtle()
 
+    # Lives display
     lives_pen = turtle.Turtle()
     lives_pen.speed(0)
     lives_pen.color("white")
@@ -70,14 +87,26 @@ def setup_ui():
     lives_pen.setposition(300, 260)
     lives_pen.hideturtle()
 
+    # High score display
+    high_score_pen = turtle.Turtle()
+    high_score_pen.speed(0)
+    high_score_pen.color("red")
+    high_score_pen.penup()
+    high_score_pen.setposition(0, 260)
+    high_score_pen.hideturtle()
+
     update_ui()
 
 def update_ui():
-    global score, lives
+    global score, lives, high_score
     score_pen.clear()
-    score_pen.write(f"Score: {score}", False, align="left", font=("Arial", 14, "normal"))
+    score_pen.write(f"SCORE: {score}".upper(), False, align="left", font=("Agency FB", 14, "bold"))
+    
     lives_pen.clear()
-    lives_pen.write(f"Lives: {lives}", False, align="right", font=("Arial", 14, "normal"))
+    lives_pen.write(f"LIVES: {lives}".upper(), False, align="right", font=("Agency FB", 14, "bold"))
+    
+    high_score_pen.clear()
+    high_score_pen.write(f"HIGH SCORE: {high_score}".upper(), False, align="center", font=("Agency FB", 14, "bold"))
 
 def show_message(message):
     msg_pen = turtle.Turtle()
@@ -85,7 +114,15 @@ def show_message(message):
     msg_pen.color("yellow")
     msg_pen.penup()
     msg_pen.hideturtle()
+    msg_pen.goto(0, 0)
     msg_pen.write(message, align="center", font=("Arial", 24, "bold"))
+    
+    # Display the final score and high score
+    msg_pen.goto(0, -30)
+    msg_pen.write(f"Final Score: {score}", align="center", font=("Arial", 18, "normal"))
+    msg_pen.goto(0, -60)
+    msg_pen.write(f"High Score: {high_score}", align="center", font=("Arial", 18, "normal"))
+    
     wn.update()
     time.sleep(2)
     msg_pen.clear()
@@ -183,8 +220,7 @@ def setup_mothership():
 
 def spawn_mothership():
     if not mothership.isvisible() and random.random() < 0.001:  # 0.1% chance per frame
-        mothership.setx(-400)
-        mothership.sety(200)
+        mothership.setposition(-400, 200)
         mothership.showturtle()
 
 def move_mothership():
@@ -193,6 +229,7 @@ def move_mothership():
         mothership.setx(x)
         if x > 400:
             mothership.hideturtle()
+            mothership.setposition(-1000, 1000)  # Move it off-screen
 
 def mothership_fire(mothership):
     if random.random() < 0.01:  # 1% chance per frame for the mothership to fire
@@ -336,9 +373,10 @@ def lose_life():
     if lives <= 0:
         game_over = True
 
+
 # Game loop
 def game_loop():
-    global game_over, score, wave_number, enemy_speed, bullet_state
+    global game_over, score, wave_number, enemy_speed, bullet_state, high_score
     if not game_over:
         move_player()
         move_bullet()
@@ -354,6 +392,11 @@ def game_loop():
                 bullet.hideturtle()
                 bullet_state = "ready"
                 score += enemy.points
+                
+                # Update high score if necessary
+                if score > high_score:
+                    high_score = score
+                    save_high_score()  # Save the new high score
                 update_ui()
 
                 # Explosion effect
@@ -416,6 +459,25 @@ def game_loop():
 
         enemy_fire()
 
+        # Check for collision between player's bullet and mothership
+        if bullet_state == "fire" and mothership.isvisible():
+            if is_collision(bullet, mothership, distance=20):
+                # Hide the bullet
+                bullet.hideturtle()
+                bullet_state = "ready"
+
+                # Hide the mothership and move it off-screen
+                mothership.hideturtle()
+                mothership.setposition(-1000, 1000)  # Move it off-screen
+
+                # Increase the player's score
+                global player_score
+                player_score += 100
+                update_ui()
+
+        # Move the mothership
+        move_mothership()
+
         if not active_enemies:
             wave_number += 1
             enemy_speed += 0.2
@@ -423,6 +485,10 @@ def game_loop():
             create_enemies()
 
         if game_over:
+            # Save high score if necessary
+            if score > high_score:
+                high_score = score
+                save_high_score()
             show_message("Game Over!")
             return
 
@@ -450,6 +516,16 @@ def show_help():
 
 # Start game function
 def start_game(x=None, y=None):
+    global game_over, score, lives, enemy_speed, wave_number, bullet_state
+    game_over = False
+    score = 0
+    lives = 3
+    enemy_speed = 0.4
+    wave_number = 1
+    bullet_state = "ready"
+    # Do not reset high_score here
+    
+    # Rest of the function...
     wn.onkeypress(None, "i")
     wn.onkeypress(None, "q")
     wn.onkeypress(None, "s")
