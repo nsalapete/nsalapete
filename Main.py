@@ -46,8 +46,12 @@ player_dx = 0
 barriers = []
 enemy_bullets = []
 menu = None
+help_button = None
+settings_button = None
+menu_background = None
 help_pen = None
 settings_pen = None
+buttons = []
 
 # UI Setup
 def setup_ui():
@@ -99,13 +103,7 @@ def play_sound(sound_file):
         print("Sound file missing or cannot play.")
 
 def play_background_music():
-    try:
-        if platform.system() == "Windows":
-            winsound.PlaySound('background_music.wav', winsound.SND_FILENAME | winsound.SND_LOOP | winsound.SND_ASYNC)
-        else:
-            os.system(f"afplay background_music.wav &")
-    except:
-        print("Background music file missing or cannot play.")
+    winsound.PlaySound('background_music.wav', winsound.SND_FILENAME | winsound.SND_LOOP | winsound.SND_ASYNC)
 
 # Player setup
 def setup_player():
@@ -179,15 +177,15 @@ def setup_mothership():
     mothership.speed(0)
     mothership.setposition(-400, 200)
     mothership.setheading(0)
-    mothership.dx = 0.5
+    mothership.dx = 6
     mothership.dy = 0
     mothership.hideturtle()
 
 def spawn_mothership():
-    if random.random() < 0.01:  # 1% chance per frame for the mothership to appear
-        mothership.showturtle()
+    if not mothership.isvisible() and random.random() < 0.001:  # 0.1% chance per frame
         mothership.setx(-400)
-        mothership.sety(270)
+        mothership.sety(200)
+        mothership.showturtle()
 
 def move_mothership():
     if mothership.isvisible():
@@ -196,7 +194,7 @@ def move_mothership():
         if x > 400:
             mothership.hideturtle()
 
-def mothership_fire():
+def mothership_fire(mothership):
     if random.random() < 0.01:  # 1% chance per frame for the mothership to fire
         bullet = turtle.Turtle()
         bullet.color("red")
@@ -260,17 +258,16 @@ def move_enemies():
 
 def enemy_fire():
     if random.random() < 0.03:  # 3% chance per frame for an enemy to fire
-        if active_enemies:
-            firing_enemy = random.choice(active_enemies)
-            bullet = turtle.Turtle()
-            bullet.color("red")
-            bullet.shape("invader_laser.gif")
-            bullet.penup()
-            bullet.speed(0)
-            bullet.setheading(270)
-            bullet.shapesize(0.5, 0.5)
-            bullet.setposition(firing_enemy.xcor(), firing_enemy.ycor())
-            enemy_bullets.append(bullet)
+        firing_enemy = random.choice(active_enemies)
+        bullet = turtle.Turtle()
+        bullet.color("red")
+        bullet.shape("invader_laser.gif")
+        bullet.penup()
+        bullet.speed(0)
+        bullet.setheading(270)
+        bullet.shapesize(0.5, 0.5)
+        bullet.setposition(firing_enemy.xcor(), firing_enemy.ycor())
+        enemy_bullets.append(bullet)
 
 def move_enemy_bullets():
     for bullet in enemy_bullets[:]:
@@ -322,6 +319,7 @@ def create_barriers():
                     block.penup()
                     block.speed(0)
                     x = start_x + (200 * i) + (col_index * 10)
+                    # Flip the y-coordinate calculation
                     y = start_y + ((num_rows - 1 - row_index) * 10)
                     block.setposition(x, y)
                     barrier_blocks.append(block)
@@ -417,7 +415,6 @@ def game_loop():
                 break
 
         enemy_fire()
-        mothership_fire()
 
         if not active_enemies:
             wave_number += 1
@@ -434,13 +431,9 @@ def game_loop():
     else:
         show_message("Game Over!")
 
-# Show help function
+
 def show_help():
     global help_pen
-    print("Displaying Instructions")
-    # Clear the screen
-    wn.clear()
-    wn.bgcolor("black")
     wn.bgpic("help_background.gif")  # Set the help background image
 
     # Create the pen for help text
@@ -449,16 +442,21 @@ def show_help():
     help_pen.penup()
     help_pen.color("white")
     help_pen.goto(0, 0)
-    wn.onkeypress(show_menu, "q")
     wn.onkeypress(start_game, "s")
+    wn.onkeypress(show_menu, "q")
     wn.listen()
 
-def start_game():
+
+
+# Start game function
+def start_game(x=None, y=None):
+    wn.onkeypress(None, "i")
+    wn.onkeypress(None, "q")
+    wn.onkeypress(None, "s")
     print("Starting the game...")
-    wn.clear()
     wn.bgcolor("black")
     wn.bgpic("space_invaders_background.gif")  # Set the game background
-
+    
     # Initialize game components
     setup_ui()
     setup_player()
@@ -481,26 +479,21 @@ def start_game():
     # Run the game loop
     game_loop()
 
-def show_menu():
-    global menu
-    wn.bgpic("menu_background.gif")  # Set the menu background image
 
-    # Menu title
+def show_menu():
+    global menu, help_button, settings_button, menu_background, start_button
+    wn.bgpic("menu_background.gif")
+
+    menu_background = turtle.Turtle()
+    menu_background.hideturtle()
+    menu_background.penup()
+    menu_background.color("white")
+    menu_background.goto(0, 250)
     menu = turtle.Turtle()
     menu.hideturtle()
     menu.penup()
-    menu.color("white")
-    menu.goto(0, 50)
-
-    # Menu instructions
-    instruction_pen = turtle.Turtle()
-    instruction_pen.hideturtle()
-    instruction_pen.penup()
-    instruction_pen.color("white")
-    instruction_pen.goto(0, -50)
-   
-
-    # Key bindings for menu
+    menu.color("black")
+    menu.goto(0, -50)
     wn.onkeypress(show_help, "i")
     wn.onkeypress(start_game, "s")
     wn.listen()
