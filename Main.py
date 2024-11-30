@@ -38,7 +38,8 @@ lives = 3
 game_over = False
 player_speed = 5
 bullet_speed = 20
-enemy_speed = 0.4
+default_enemy_speed = 0.5
+enemy_speed = default_enemy_speed
 wave_number = 1
 bullet_state = "ready"
 active_enemies = []
@@ -52,6 +53,7 @@ menu_background = None
 help_pen = None
 settings_pen = None
 buttons = []
+direction_changes = 0
 
 def load_high_score():
     global high_score
@@ -214,7 +216,7 @@ def setup_mothership():
     mothership.speed(0)
     mothership.setposition(-400, 200)
     mothership.setheading(0)
-    mothership.dx = 6
+    mothership.dx = 4
     mothership.dy = 0
     mothership.hideturtle()
 
@@ -245,9 +247,10 @@ def mothership_fire(mothership):
 
 # Enemy setup
 def create_enemies():
-    global active_enemies, initial_enemy_count
+    global active_enemies, initial_enemy_count, enemy_speed
     active_enemies.clear()
-    start_x = -275  # Adjusted to fit 11 enemies with spacing
+    enemy_speed = default_enemy_speed  # Reset enemy speed
+    start_x = -275  
     start_y = 250
     rows = [
         {"shape": "invader1.gif", "points": 10, "count": 11},  # Row 1 (Topmost)
@@ -257,8 +260,8 @@ def create_enemies():
         {"shape": "invader2.gif", "points": 20, "count": 11},  # Row 5
     ]
 
-    row_spacing = 50     # Vertical spacing between rows
-    enemy_spacing = 50   # Horizontal spacing between enemies
+    row_spacing = 50   
+    enemy_spacing = 50   
 
     for row_index, row in enumerate(rows):
         shape = row["shape"]
@@ -274,24 +277,78 @@ def create_enemies():
             x_position = start_x + (enemy_spacing * i)
             enemy.setposition(x_position, y_position)
             enemy.points = points
+            enemy.is_mothership = False  
             active_enemies.append(enemy)
 
-    initial_enemy_count = len(active_enemies)  # Set the initial enemy count
+    initial_enemy_count = len([e for e in active_enemies if not e.is_mothership]) 
 
 def move_enemies():
     global enemy_speed, game_over
-    for enemy in active_enemies:
-        x = enemy.xcor() + enemy_speed
-        enemy.setx(x)
-    # Check for boundary collision and move enemies down
-    for enemy in active_enemies:
-        if enemy.xcor() > 380 or enemy.xcor() < -380:
-            enemy_speed *= -1
-            for e in active_enemies:
-                e.sety(e.ycor() - 40)
-            break
-        if enemy.ycor() < -250:
-            game_over = True
+
+    # Movement boundaries
+    left_boundary = -380
+    right_boundary = 380
+
+    # Flag to determine if enemies hit the boundary
+    boundary_hit = False
+
+    # Move enemies horizontally
+    for enemy in active_enemies[:]:
+        if enemy.isvisible() and not enemy.is_mothership:
+            x = enemy.xcor() + enemy_speed
+            enemy.setx(x)
+            # Check for boundary collision
+            if (enemy_speed > 0 and x >= right_boundary) or (enemy_speed < 0 and x <= left_boundary):
+                boundary_hit = True
+
+    # Handle boundary collision after moving all enemies
+    if boundary_hit:
+        enemy_speed *= -1  # Change direction
+
+        # Increase enemy speed each time they hit the edge
+        speed_increment = 0.4  # Adjust this value as needed
+        max_enemy_speed = 6.0    # Set a maximum speed limit
+        if abs(enemy_speed) + speed_increment <= max_enemy_speed:
+            if enemy_speed > 0:
+                enemy_speed += speed_increment
+            else:
+                enemy_speed -= speed_increment
+        else:
+            # Cap the enemy speed at maximum limit
+            if enemy_speed > 0:
+                enemy_speed = max_enemy_speed
+            else:
+                enemy_speed = -max_enemy_speed
+
+        # Move enemies down by 10 units
+        for enemy in active_enemies[:]:
+            if enemy.isvisible() and not enemy.is_mothership:
+                y = enemy.ycor() - 10  # Move down by 10 units
+                enemy.sety(y)
+                # Check for game over condition
+                if y < -250:
+                    game_over = True
+                    return
+
+        # Correct enemy positions to stay within boundaries
+        for enemy in active_enemies[:]:
+            if enemy.isvisible() and not enemy.is_mothership:
+                x = enemy.xcor()
+                # Adjust positions if they go beyond the boundaries
+                if x > right_boundary:
+                    enemy.setx(right_boundary)
+                elif x < left_boundary:
+                    enemy.setx(left_boundary)
+
+    # Move the mothership (if applicable)
+    for enemy in active_enemies[:]:
+        if enemy.isvisible() and enemy.is_mothership:
+            x = enemy.xcor() + enemy.dx
+            enemy.setx(x)
+            if x > 400:
+                enemy.hideturtle()
+                enemy.setposition(-1000, 1000)
+                active_enemies.remove(enemy)
 
 def enemy_fire():
     if random.random() < 0.03:  # 3% chance per frame for an enemy to fire
@@ -396,14 +453,13 @@ def game_loop():
                 # Update high score if necessary
                 if score > high_score:
                     high_score = score
-                    save_high_score()  # Save the new high score
+                    save_high_score()  
                 update_ui()
 
                 # Explosion effect
                 enemy.shape("explosion.gif")
                 wn.update()
-                time.sleep(0.1)  # Duration of the explosion
-
+                time.sleep(0.1) 
                 enemy.hideturtle()
                 active_enemies.remove(enemy)
                 break
@@ -421,9 +477,9 @@ def game_loop():
             # Explosion effect
             mothership.shape("explosion_bonus.gif")
             wn.update()
-            time.sleep(0.1)  # Duration of the explosion
+            time.sleep(0.1)  
             mothership.hideturtle()
-            mothership.shape("mothership.gif")  # Reset the shape back to original
+            mothership.shape("mothership.gif")  
             score += 150  
 
         # Player bullet collision with barriers
@@ -468,9 +524,8 @@ def game_loop():
 
                 # Hide the mothership and move it off-screen
                 mothership.hideturtle()
-                mothership.setposition(-1000, 1000)  # Move it off-screen
+                mothership.setposition(-1000, 1000) 
 
-                # Increase the player's score
                 global player_score
                 player_score += 100
                 update_ui()
@@ -481,11 +536,10 @@ def game_loop():
         if not active_enemies:
             wave_number += 1
             enemy_speed += 0.2
-            create_barriers()  # Reset barriers
+            create_barriers()  
             create_enemies()
 
         if game_over:
-            # Save high score if necessary
             if score > high_score:
                 high_score = score
                 save_high_score()
@@ -500,8 +554,7 @@ def game_loop():
 
 def show_help():
     global help_pen
-    wn.bgpic("help_background.gif")  # Set the help background image
-
+    wn.bgpic("help_background.gif")  
     # Create the pen for help text
     help_pen = turtle.Turtle()
     help_pen.hideturtle()
@@ -516,24 +569,20 @@ def show_help():
 
 # Start game function
 def start_game(x=None, y=None):
-    global game_over, score, lives, enemy_speed, wave_number, bullet_state
+    global game_over, score, lives, enemy_speed, wave_number, bullet_state, direction_changes
     game_over = False
     score = 0
     lives = 3
-    enemy_speed = 0.4
     wave_number = 1
     bullet_state = "ready"
-    # Do not reset high_score here
-    
-    # Rest of the function...
+    enemy_speed = default_enemy_speed
+    direction_changes = 0  
     wn.onkeypress(None, "i")
     wn.onkeypress(None, "q")
     wn.onkeypress(None, "s")
     print("Starting the game...")
     wn.bgcolor("black")
-    wn.bgpic("space_invaders_background.gif")  # Set the game background
-    
-    # Initialize game components
+    wn.bgpic("space_invaders_background.gif")  
     setup_ui()
     setup_player()
     setup_bullet()
@@ -541,7 +590,6 @@ def start_game(x=None, y=None):
     create_barriers()
     create_enemies()
 
-    # Keyboard bindings
     wn.onkeypress(move_left, "Left")
     wn.onkeypress(move_right, "Right")
     wn.onkeyrelease(stop_player, "Left")
@@ -549,10 +597,8 @@ def start_game(x=None, y=None):
     wn.onkey(fire_bullet, "space")
     wn.listen()
 
-    # Start background music
     threading.Thread(target=play_background_music, daemon=True).start()
 
-    # Run the game loop
     game_loop()
 
 
