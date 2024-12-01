@@ -534,7 +534,7 @@ def game_loop():
 
         if not active_enemies:
             wave_number += 1
-            enemy_speed += 0.2
+            enemy_speed += 0.3
             lives = 3
             enemy_start_y -= 25 
             if enemy_start_y < 50:
