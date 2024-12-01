@@ -54,7 +54,7 @@ help_pen = None
 settings_pen = None
 buttons = []
 direction_changes = 0
-
+enemy_start_y = 250  
 def load_high_score():
     global high_score
     if os.path.exists("high_score.txt"):
@@ -251,9 +251,9 @@ def create_enemies():
     active_enemies.clear()
     enemy_speed = default_enemy_speed  # Reset enemy speed
     start_x = -275  
-    start_y = 250
+    start_y = enemy_start_y 
     rows = [
-        {"shape": "invader1.gif", "points": 10, "count": 11},  # Row 1 (Topmost)
+        {"shape": "invader1.gif", "points": 10, "count": 11},  # Row 1
         {"shape": "invader3.gif", "points": 30, "count": 11},  # Row 2
         {"shape": "invader3.gif", "points": 30, "count": 11},  # Row 3
         {"shape": "invader2.gif", "points": 20, "count": 11},  # Row 4
@@ -283,13 +283,12 @@ def create_enemies():
     initial_enemy_count = len([e for e in active_enemies if not e.is_mothership]) 
 
 def move_enemies():
-    global enemy_speed, game_over
+    global enemy_speed, game_over, enemy_start_y
 
     # Movement boundaries
     left_boundary = -380
     right_boundary = 380
 
-    # Flag to determine if enemies hit the boundary
     boundary_hit = False
 
     # Move enemies horizontally
@@ -303,11 +302,11 @@ def move_enemies():
 
     # Handle boundary collision after moving all enemies
     if boundary_hit:
-        enemy_speed *= -1  # Change direction
+        enemy_speed *= -1
 
-        # Increase enemy speed each time they hit the edge
-        speed_increment = 0.4  # Adjust this value as needed
-        max_enemy_speed = 6.0    # Set a maximum speed limit
+     
+        speed_increment = 0.4  
+        max_enemy_speed = 6.0  
         if abs(enemy_speed) + speed_increment <= max_enemy_speed:
             if enemy_speed > 0:
                 enemy_speed += speed_increment
@@ -370,7 +369,7 @@ def move_enemy_bullets():
             bullet.hideturtle()
             if bullet in enemy_bullets:
                 enemy_bullets.remove(bullet)
-        elif is_collision(player, bullet, distance=15):  # Adjusted collision distance
+        elif is_collision(player, bullet, distance=15): 
             play_sound("player_hit.wav")
             bullet.hideturtle()
             if bullet in enemy_bullets:
@@ -379,7 +378,7 @@ def move_enemy_bullets():
 
         # Enemy bullets collision with barriers
         for block in barriers[:]:
-            if is_collision(bullet, block, distance=10):  # Adjusted collision distance
+            if is_collision(bullet, block, distance=10): 
                 bullet.hideturtle()
                 if bullet in enemy_bullets:
                     enemy_bullets.remove(bullet)
@@ -433,7 +432,7 @@ def lose_life():
 
 # Game loop
 def game_loop():
-    global game_over, score, wave_number, enemy_speed, bullet_state, high_score
+    global game_over, score, wave_number, enemy_speed, bullet_state, high_score, enemy_start_y  # Add enemy_start_y to the global declaration
     if not game_over:
         move_player()
         move_bullet()
@@ -536,7 +535,11 @@ def game_loop():
         if not active_enemies:
             wave_number += 1
             enemy_speed += 0.2
-            create_barriers()  
+            lives = 3
+            enemy_start_y -= 25 
+            if enemy_start_y < 50:
+                enemy_start_y = 50
+            update_ui()
             create_enemies()
 
         if game_over:
