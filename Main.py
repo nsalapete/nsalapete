@@ -117,13 +117,11 @@ def show_message(message):
     msg_pen.penup()
     msg_pen.hideturtle()
     msg_pen.goto(0, 0)
-    msg_pen.write(message, align="center", font=("Arial", 24, "bold"))
-    
-    # Display the final score and high score
+    msg_pen.write(message, align="center", font=("Agency FB", 24, "bold"))
     msg_pen.goto(0, -30)
-    msg_pen.write(f"Final Score: {score}", align="center", font=("Arial", 18, "normal"))
+    msg_pen.write(f"Final Score: {score}", align="center", font=("Agency FB", 18, "normal"))
     msg_pen.goto(0, -60)
-    msg_pen.write(f"High Score: {high_score}", align="center", font=("Arial", 18, "normal"))
+    msg_pen.write(f"High Score: {high_score}", align="center", font=("Agency FB", 18, "normal"))
     
     wn.update()
     time.sleep(2)
@@ -200,30 +198,31 @@ def fire_bullet():
 def move_bullet():
     global bullet_state
     if bullet_state == "fire":
-        y = bullet.ycor() + bullet_speed
+        y = bullet.ycor()
+        y += bullet_speed
         bullet.sety(y)
-        if y > 290:
+        if y > 275:
             bullet.hideturtle()
             bullet_state = "ready"
+            bullet.setposition(0, -400)
 
 # MotherShip setup
 def setup_mothership():
     global mothership
     mothership = turtle.Turtle()
-    mothership.color("purple")
     mothership.shape("mothership.gif")
     mothership.penup()
     mothership.speed(0)
-    mothership.setposition(-400, 200)
-    mothership.setheading(0)
-    mothership.dx = 4
-    mothership.dy = 0
+    mothership.setposition(-400, 250) 
+    mothership.dx = 2  
     mothership.hideturtle()
+    mothership.is_active = False  
+    mothership.points = 150  
 
 def spawn_mothership():
-    if not mothership.isvisible() and random.random() < 0.001:  # 0.1% chance per frame
-        mothership.setposition(-400, 200)
+    if not mothership.is_active:  # 0.1% chance per frame
         mothership.showturtle()
+        mothership.is_active = True 
 
 def move_mothership():
     if mothership.isvisible():
@@ -323,22 +322,16 @@ def move_enemies():
             if enemy.isvisible() and not enemy.is_mothership:
                 y = enemy.ycor() - 10  # Move down by 10 units
                 enemy.sety(y)
-                # Check for game over condition
                 if y < -250:
                     game_over = True
                     return
-
-        # Correct enemy positions to stay within boundaries
         for enemy in active_enemies[:]:
             if enemy.isvisible() and not enemy.is_mothership:
                 x = enemy.xcor()
-                # Adjust positions if they go beyond the boundaries
                 if x > right_boundary:
                     enemy.setx(right_boundary)
                 elif x < left_boundary:
                     enemy.setx(left_boundary)
-
-    # Move the mothership (if applicable)
     for enemy in active_enemies[:]:
         if enemy.isvisible() and enemy.is_mothership:
             x = enemy.xcor() + enemy.dx
@@ -478,7 +471,8 @@ def game_loop():
             time.sleep(0.1)  
             mothership.hideturtle()
             mothership.shape("mothership.gif")  
-            score += 150  
+            score += 150 
+            fire_bullet() 
 
         # Player bullet collision with barriers
         for block in barriers[:]:
@@ -512,25 +506,19 @@ def game_loop():
                 break
 
         enemy_fire()
-
-        # Check for collision between player's bullet and mothership
         if bullet_state == "fire" and mothership.isvisible():
             if is_collision(bullet, mothership, distance=20):
-                # Hide the bullet
                 bullet.hideturtle()
                 bullet_state = "ready"
-
-                # Hide the mothership and move it off-screen
                 mothership.hideturtle()
                 mothership.setposition(-1000, 1000) 
-
                 global player_score
                 player_score += 100
                 update_ui()
 
         # Move the mothership
         move_mothership()
-
+        check_bullet_collision()
         if not active_enemies:
             wave_number += 1
             lives = 3
@@ -579,7 +567,18 @@ def show_help():
     wn.onkeypress(show_menu, "q")
     wn.listen()
 
-
+def check_bullet_collision():
+    global score, bullet_state
+    if bullet.isvisible() and mothership.isvisible() and mothership.is_active:
+        if bullet.distance(mothership) < 20:
+            bullet.hideturtle()
+            bullet_state = "ready"
+            bullet.setposition(0, -400)
+            score += mothership.points
+            update_ui()
+            mothership.hideturtle()
+            mothership.is_active = False
+            mothership.setposition(-1000, 1000)
 
 # Start game function
 def start_game(x=None, y=None):
@@ -640,3 +639,5 @@ threading.Thread(target=play_background_music, daemon=True).start()
 if __name__ == "__main__":
     show_menu()
     wn.mainloop()
+
+
