@@ -247,9 +247,8 @@ def mothership_fire(mothership):
 
 # Enemy setup
 def create_enemies():
-    global active_enemies, initial_enemy_count, enemy_speed
+    global active_enemies, initial_enemy_count
     active_enemies.clear()
-    enemy_speed = default_enemy_speed  # Reset enemy speed
     start_x = -275  
     start_y = enemy_start_y 
     rows = [
@@ -534,11 +533,23 @@ def game_loop():
 
         if not active_enemies:
             wave_number += 1
-            enemy_speed += 0.3
             lives = 3
-            enemy_start_y -= 25 
+            enemy_start_y -= 25
             if enemy_start_y < 50:
                 enemy_start_y = 50
+            speed_increment = 0.3  
+            max_enemy_speed = 6.0  
+            if abs(enemy_speed) + speed_increment <= max_enemy_speed:
+                if enemy_speed > 0:
+                    enemy_speed += speed_increment
+                else:
+                    enemy_speed -= speed_increment
+            else:
+                if enemy_speed > 0:
+                    enemy_speed = max_enemy_speed
+                else:
+                    enemy_speed = -max_enemy_speed
+
             update_ui()
             create_enemies()
 
