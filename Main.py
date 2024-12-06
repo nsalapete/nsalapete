@@ -5,21 +5,21 @@ import time
 import random
 import threading
 
-# Platform-specific sound handling
+#Platform-specific sound handling
 if platform.system() == "Windows":
     try:
         import winsound
     except ImportError:
         print("winsound module not available")
 
-# Screen setup
+#Screen setup
 wn = turtle.Screen()
 wn.bgcolor("black")
 wn.title("Space Invaders")
 wn.setup(width=800, height=600)
 wn.tracer(0)
 
-# Register shapes
+#Register shapes
 turtle.register_shape("invader1.gif")  
 turtle.register_shape("invader2.gif")
 turtle.register_shape("invader3.gif")  
@@ -31,7 +31,7 @@ turtle.register_shape("invader_laser.gif")
 turtle.register_shape("explosion_bonus.gif")
 turtle.register_shape("mothership.gif")
 
-# Global variables
+#Global variables
 score = 0
 high_score = 0
 lives = 3
@@ -67,10 +67,10 @@ def save_high_score():
     with open("high_score.txt", "w") as file:
         file.write(str(high_score))
 
-# Load the high score
+
 load_high_score()
 
-# UI Setup
+#UI Setup
 def setup_ui():
     global score_pen, lives_pen, high_score_pen
     # Score display
@@ -80,8 +80,6 @@ def setup_ui():
     score_pen.penup()
     score_pen.setposition(-380, 260)
     score_pen.hideturtle()
-
-    # Lives display
     lives_pen = turtle.Turtle()
     lives_pen.speed(0)
     lives_pen.color("white")
@@ -89,7 +87,7 @@ def setup_ui():
     lives_pen.setposition(350, 260)
     lives_pen.hideturtle()
 
-    # High score display
+    #High score display
     high_score_pen = turtle.Turtle()
     high_score_pen.speed(0)
     high_score_pen.color("Blue")
@@ -127,7 +125,7 @@ def show_message(message):
     time.sleep(2)
     msg_pen.clear()
 
-# Sound handling
+#Sound handling
 def play_sound(sound_file):
     try:
         if platform.system() == "Windows":
@@ -142,7 +140,7 @@ def play_sound(sound_file):
 def play_background_music():
     winsound.PlaySound('background_music.wav', winsound.SND_FILENAME | winsound.SND_LOOP | winsound.SND_ASYNC)
 
-# Player setup
+#Player setup
 def setup_player():
     global player
     player = turtle.Turtle()
@@ -173,7 +171,7 @@ def stop_player():
     global player_dx
     player_dx = 0
 
-# Bullet setup
+#Bullet setup
 def setup_bullet():
     global bullet
     bullet = turtle.Turtle()
@@ -206,7 +204,7 @@ def move_bullet():
             bullet_state = "ready"
             bullet.setposition(0, -400)
 
-# MotherShip setup
+#MotherShip setup
 def setup_mothership():
     global mothership
     mothership = turtle.Turtle()
@@ -220,7 +218,7 @@ def setup_mothership():
     mothership.points = 150  
 
 def spawn_mothership():
-    if not mothership.is_active:  # 0.1% chance per frame
+    if not mothership.is_active:  #0.1% chance per frame
         mothership.showturtle()
         mothership.is_active = True 
 
@@ -230,10 +228,10 @@ def move_mothership():
         mothership.setx(x)
         if x > 400:
             mothership.hideturtle()
-            mothership.setposition(-1000, 1000)  # Move it off-screen
+            mothership.setposition(-1000, 1000)  #Move it off-screen
 
 def mothership_fire(mothership):
-    if random.random() < 0.01:  # 1% chance per frame for the mothership to fire
+    if random.random() < 0.01:  #1% chance per frame for the mothership to fire
         bullet = turtle.Turtle()
         bullet.color("red")
         bullet.shape("invader_laser.gif")
@@ -244,7 +242,7 @@ def mothership_fire(mothership):
         bullet.setposition(mothership.xcor(), mothership.ycor())
         enemy_bullets.append(bullet)
 
-# Enemy setup
+#Enemy setup
 def create_enemies():
     global active_enemies, initial_enemy_count
     active_enemies.clear()
@@ -283,22 +281,21 @@ def create_enemies():
 def move_enemies():
     global enemy_speed, game_over, enemy_start_y
 
-    # Movement boundaries
+    #Movement boundaries
     left_boundary = -380
     right_boundary = 380
 
     boundary_hit = False
 
-    # Move enemies horizontally
+    #Move enemies horizontally
     for enemy in active_enemies[:]:
         if enemy.isvisible() and not enemy.is_mothership:
             x = enemy.xcor() + enemy_speed
             enemy.setx(x)
-            # Check for boundary collision
             if (enemy_speed > 0 and x >= right_boundary) or (enemy_speed < 0 and x <= left_boundary):
                 boundary_hit = True
 
-    # Handle boundary collision after moving all enemies
+    #Handle boundary collision after moving all enemies
     if boundary_hit:
         enemy_speed *= -1
 
@@ -311,16 +308,15 @@ def move_enemies():
             else:
                 enemy_speed -= speed_increment
         else:
-            # Cap the enemy speed at maximum limit
             if enemy_speed > 0:
                 enemy_speed = max_enemy_speed
             else:
                 enemy_speed = -max_enemy_speed
 
-        # Move enemies down by 10 units
+        #Move enemies down by 10 units
         for enemy in active_enemies[:]:
             if enemy.isvisible() and not enemy.is_mothership:
-                y = enemy.ycor() - 10  # Move down by 10 units
+                y = enemy.ycor() - 10  #Move down by 10 units
                 enemy.sety(y)
                 if y < -250:
                     game_over = True
@@ -342,7 +338,7 @@ def move_enemies():
                 active_enemies.remove(enemy)
 
 def enemy_fire():
-    if random.random() < 0.03:  # 3% chance per frame for an enemy to fire
+    if random.random() < 0.03:  #3% chance per frame for an enemy to fire
         firing_enemy = random.choice(active_enemies)
         bullet = turtle.Turtle()
         bullet.color("red")
@@ -368,7 +364,7 @@ def move_enemy_bullets():
                 enemy_bullets.remove(bullet)
             lose_life()
 
-        # Enemy bullets collision with barriers
+        #Enemy bullets collision with barriers
         for block in barriers[:]:
             if is_collision(bullet, block, distance=10): 
                 bullet.hideturtle()
@@ -379,7 +375,7 @@ def move_enemy_bullets():
                     barriers.remove(block)
                 break
 
-# Barrier setup
+#Barrier setup
 def create_barriers():
     global barriers
     barriers.clear()
@@ -391,7 +387,7 @@ def create_barriers():
         [1,1,1,1,1,1,1,1,1],
         [1,1,1,1,1,1,1,1,1],
     ]
-    for i in range(4):  # Create 4 barriers
+    for i in range(4):  #Create 4 barriers
         barrier_blocks = []
         num_rows = len(barrier_shape)
         for row_index, row in enumerate(barrier_shape):
@@ -404,13 +400,12 @@ def create_barriers():
                     block.penup()
                     block.speed(0)
                     x = start_x + (200 * i) + (col_index * 10)
-                    # Flip the y-coordinate calculation
+                    #Flip the y-coordinate calculation
                     y = start_y + ((num_rows - 1 - row_index) * 10)
                     block.setposition(x, y)
                     barrier_blocks.append(block)
         barriers.extend(barrier_blocks)
 
-# Collision detection
 def is_collision(t1, t2, distance=20):
     return t1.distance(t2) < distance
 
@@ -422,9 +417,9 @@ def lose_life():
         game_over = True
 
 
-# Game loop
+#Game loop
 def game_loop():
-    global game_over, score, wave_number, enemy_speed, bullet_state, high_score, enemy_start_y  # Add enemy_start_y to the global declaration
+    global game_over, score, wave_number, enemy_speed, bullet_state, high_score, enemy_start_y 
     if not game_over:
         move_player()
         move_bullet()
@@ -433,7 +428,7 @@ def game_loop():
         spawn_mothership()
         move_mothership()
 
-        # Player bullet collision with enemies
+        #Player bullet collision with enemies
         for enemy in active_enemies[:]:
             if is_collision(bullet, enemy):
                 play_sound("explosion.wav")
@@ -441,7 +436,7 @@ def game_loop():
                 bullet_state = "ready"
                 score += enemy.points
                 
-                # Update high score if necessary
+                #Update high score if necessary
                 if score > high_score:
                     high_score = score
                     save_high_score()  
@@ -465,7 +460,7 @@ def game_loop():
             bullet.hideturtle()
             bullet_state = "ready"
             update_ui()
-            # Explosion effect
+            #Explosion effect
             mothership.shape("explosion_bonus.gif")
             wn.update()
             time.sleep(0.1)  
@@ -474,7 +469,7 @@ def game_loop():
             score += 150 
             fire_bullet() 
 
-        # Player bullet collision with barriers
+        #Player bullet collision with barriers
         for block in barriers[:]:
             if is_collision(bullet, block, distance=5):
                 bullet.hideturtle()
@@ -516,7 +511,7 @@ def game_loop():
                 player_score += 100
                 update_ui()
 
-        # Move the mothership
+        #Move the mothership
         move_mothership()
         check_bullet_collision()
         if not active_enemies:
@@ -557,7 +552,6 @@ def game_loop():
 def show_help():
     global help_pen
     wn.bgpic("help_background.gif")  
-    # Create the pen for help text
     help_pen = turtle.Turtle()
     help_pen.hideturtle()
     help_pen.penup()
