@@ -55,6 +55,10 @@ settings_pen = None
 buttons = []
 direction_changes = 0
 enemy_start_y = 250  
+
+"""
+input:
+"""
 def load_high_score():
     global high_score
     if os.path.exists("high_score.txt"):
