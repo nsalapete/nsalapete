@@ -2,7 +2,7 @@
 
 **Engineering Student at CentraleSupélec & ESSEC**  
 **AI & Software Development Enthusiast**  
-_Gif-sur-Yvette, France | 19 y/o_
+Cergy, France | 20 y/o_
 
 [![LinkedIn](https://img.shields.io/badge/LinkedIn-blue?logo=linkedin&style=flat)](https://www.linkedin.com/in/nicolas-salapete)
 [![Email](https://img.shields.io/badge/Email-nicolas.salapete@essec.edu-red?logo=gmail&style=flat)](mailto:nicolas.salapete@essec.edu)
