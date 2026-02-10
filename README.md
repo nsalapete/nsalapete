@@ -11,7 +11,7 @@ Cergy, France | 20 y/o_
 
 ## 🚀 About Me
 
-I'm currently a first-year engineering student pursuing a dual degree in AI, Data, and Management Sciences at **CentraleSupélec & ESSEC**. I'm passionate about **software development**, **autonomous systems**, and **machine learning**. I'm actively seeking a **Software Engineering internship for July 2025**, where I can apply and grow my technical skills in a fast-paced, innovative environment.
+I'm currently a first-year engineering student pursuing a dual degree in AI, Data, and Management Sciences at **CentraleSupélec & ESSEC**. I'm passionate about **software development**, **autonomous systems**, and **machine learning**. I'm actively seeking a **Software Engineering internship for May 2026**, where I can apply and grow my technical skills in a fast-paced, innovative environment.
 
 ---
 
